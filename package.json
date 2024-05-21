@@ -2,7 +2,7 @@
 	"name": "svelte-file-explorer",
 	"version": "0.0.1",
 	"scripts": {
-		"dev": "vite dev",
+		"dev": "vite dev --host",
 		"build": "vite build && npm run package",
 		"preview": "vite preview",
 		"package": "svelte-kit sync && svelte-package && publint",
@@ -60,6 +60,7 @@
 		"cmdk-sv": "^0.0.17",
 		"embla-carousel-svelte": "^8.1.1",
 		"formsnap": "^1.0.0",
+		"lucide-svelte": "^0.379.0",
 		"mode-watcher": "^0.3.0",
 		"paneforge": "^0.0.4",
 		"svelte-radix": "^1.1.0",
