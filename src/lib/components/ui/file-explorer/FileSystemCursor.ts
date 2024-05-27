@@ -18,6 +18,8 @@ export const current_node = writable<folder_node | file_node | null>(null);
 export const path = writable<(folder_node | file_node)[]>([]);
 
 export class FileSystemCursor {
+
+    
     constructor(file_system: folder_node) {
         root.update((x) => file_system);
         current_node.update((x) => file_system)
