@@ -6,44 +6,31 @@
   import * as DropdownMenu from '$lib/components/ui/dropdown-menu/index.js';
   import { Input } from '$lib/components/ui/input/index.js';
   import { Button } from '$lib/components/ui/button/index.js';
+  import * as ContextMenu from "$lib/components/ui/context-menu/index.js";
 
   import ArrowLeft from "lucide-svelte/icons/arrow-left";
   import ArrowRight from "lucide-svelte/icons/arrow-right";
-  import RotateCw  from "lucide-svelte/icons/rotate-cw";
+  import RotateCw from "lucide-svelte/icons/rotate-cw";
+  import FolderIcon from "lucide-svelte/icons/folder";
+  import FileTextIcon from "lucide-svelte/icons/file-text";
   import MagnifyingGlass from 'svelte-radix/MagnifyingGlass.svelte';
 
   import FileTree from './FileTree.svelte';
-
-  interface file_node {
-      name: string;
-      type: 'file';
-  }
-
-  interface folder_node {
-      name: string;
-      type: 'folder';
-      children: (file_node | folder_node)[];
-  }
+  import { FileSystemCursor, current_node, path, root, type folder_node, type file_node } from './FileSystemCursor.js';
 
   export let file_system: folder_node;
+  const cursor = new FileSystemCursor(file_system);
 
-  const breadcrumb_store = writable([{ name: '', path: '/' }]);
-  const current_path = writable('/');
-
-  let active_path = writable('');
-
-  function update_breadcrumb(path: string) {
-    current_path.set(path);
-    breadcrumb_store.update(b => {
-      const parts = path.split('/').filter(p => p);
-      return parts.map((part, index) => ({
-        name: part,
-        path: '/' + parts.slice(0, index + 1).join('/')
-      }));
-    });
+  // Function to handle breadcrumb click
+  function handle_breadcrumb_click(index: number) {
+    const path = cursor.get_path().slice(0, index + 1);
+    console.log(cursor.navigate_to_path(path));
   }
 
-
+  $: {
+    //console.log($current_node);
+    console.log($path);
+  }
 </script>
 
 <div class="p-6">
@@ -54,24 +41,24 @@
         <!-- NAVIGATION BUTTONS -->
         <Button variant="ghost" class="h-full"><ArrowLeft class="h-5 w-5" /></Button>
         <Button variant="ghost" class="ml-1 h-full"><ArrowRight class="h-5 w-5" /></Button>
-        <Button variant="ghost" class="ml-1 h-full"><RotateCw  class="h-5 w-5" /></Button>
+        <Button variant="ghost" class="ml-1 h-full"><RotateCw class="h-5 w-5" /></Button>
         <!-- NAVIGATION BUTTONS -->
 
         <!-- FILE PATH -->
         <Card.Root class="ml-2 flex h-full w-full items-center rounded-md">
           <Breadcrumb.Root class="w-full">
             <Breadcrumb.List class="pl-3">
-              {#each $breadcrumb_store as item, index (item.path)}
+              {#each $path as item, index}
                 <Breadcrumb.Item>
-                  {#if index === $breadcrumb_store.length - 1}
+                  {#if index === $path.length - 1}
                     <Breadcrumb.Page>{item.name}</Breadcrumb.Page>
                   {:else}
-                  <a href="##" on:click|preventDefault={() => update_breadcrumb(item.path)}>
-                    <Breadcrumb.Link >{item.name}</Breadcrumb.Link>
+                  <a href="##" on:click|preventDefault={() => handle_breadcrumb_click(index)}>
+                    <Breadcrumb.Link>{item.name}</Breadcrumb.Link>
                   </a>
                   {/if}
                 </Breadcrumb.Item>
-                {#if index !== $breadcrumb_store.length - 1}
+                {#if index !== $path.length - 1}
                   <Breadcrumb.Separator />
                 {/if}
               {/each}
@@ -97,11 +84,45 @@
 
     <Resizable.PaneGroup direction="horizontal">
       <Resizable.Pane defaultSize={15} class="flex h-[700px]">
-        <FileTree node={file_system} {update_breadcrumb} />
+          <FileTree node={$root} cursor={cursor}/>
       </Resizable.Pane>
       <Resizable.Handle />
       
-      <Resizable.Pane class="flex h-[700px] items-center justify-center p-6">Two</Resizable.Pane>
+      <Resizable.Pane class="flex flex-col h-[700px] items-start p-2">
+        {#if $current_node}
+          {#each $current_node.children as child}
+            <ContextMenu.Root>
+              <ContextMenu.Trigger>
+                  {#if child.type === 'folder'}
+                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => cursor.enter_folder(child.name)}>
+                      <FolderIcon class="h-6 w-6 mr-2" />
+                      <div class="text-xs">{child.name}</div>
+                    </Button>
+                  {:else}
+                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left">
+                      <FileTextIcon class="h-6 w-6 mr-2" />
+                      <div class="text-xs">{child.name}</div>
+                    </Button>
+                  {/if}
+              </ContextMenu.Trigger>
+              <ContextMenu.Content class="w-64">
+                <ContextMenu.Item inset>
+                  Back
+                  <ContextMenu.Shortcut>⌘[</ContextMenu.Shortcut>
+                </ContextMenu.Item>
+                <ContextMenu.Item inset>
+                  Forward
+                  <ContextMenu.Shortcut>⌘]</ContextMenu.Shortcut>
+                </ContextMenu.Item>
+                <ContextMenu.Item inset>
+                  Reload
+                  <ContextMenu.Shortcut>⌘R</ContextMenu.Shortcut>
+                </ContextMenu.Item>
+              </ContextMenu.Content>
+            </ContextMenu.Root>
+          {/each}
+        {/if}
+      </Resizable.Pane>
     </Resizable.PaneGroup>
   </Resizable.PaneGroup>
 </div>

@@ -1,80 +1,90 @@
-interface FileNode {
+import { writable, get } from 'svelte/store';
+
+// Define the types
+export interface file_node {
     name: string;
     type: 'file';
 }
 
-interface FolderNode {
+export interface folder_node {
     name: string;
     type: 'folder';
-    children: (FileNode | FolderNode)[];
-    childIndex?: Map<string, FileNode | FolderNode>;
+    children: (file_node | folder_node)[];
 }
 
-class FileSystemCursor {
-    private root: FolderNode;
-    private currentNode: FolderNode | FileNode;
-    private path: (FolderNode | FileNode)[];
+// Define the stores
+export const root = writable<folder_node>();
+export const current_node = writable<folder_node | file_node | null>(null);
+export const path = writable<(folder_node | file_node)[]>([]);
 
-    constructor(fileSystem: FolderNode) {
-        this.root = fileSystem;
-        this.currentNode = fileSystem;
-        this.path = [];
-        this.indexChildren(fileSystem);
+export class FileSystemCursor {
+    constructor(file_system: folder_node) {
+        root.update((x) => file_system);
+        current_node.update((x) => file_system)
+        path.update((a) => []);
     }
 
-    private indexChildren(node: FolderNode | FileNode): void {
-        if (node.type === 'folder') {
-            node.childIndex = new Map(node.children.map(child => [child.name, child]));
-            node.children.forEach(child => {
-                if (child.type === 'folder') {
-                    this.indexChildren(child);
-                }
-            });
-        }
-    }
-
-    public enterFolder(folderName: string): boolean {
-        if (this.currentNode.type === 'folder') {
-            const found = this.currentNode.childIndex?.get(folderName);
-            if (found && found.type === 'folder') {
-                this.path.push(this.currentNode);
-                this.currentNode = found;
+    public enter_folder(folder_name: string): boolean {
+        const current = get(current_node) as folder_node;
+        if (current.type === 'folder') {
+            const found = current.children.find(
+                child => child.name === folder_name && child.type === 'folder'
+            ) as folder_node | undefined;
+            if (found) {
+                path.update(p => [...p, current]);
+                current_node.update((f) => found);
                 return true;
             }
         }
         return false;
     }
 
-    public exitFolder(): boolean {
-        if (this.path.length > 0) {
-            this.currentNode = this.path.pop()!;
+    public exit_folder(): boolean {
+        const current_path = get(path);
+        if (current_path.length > 0) {
+            const previous_node = current_path.pop()!;
+            current_node.update((node) => previous_node);
+            path.update((path) => current_path);
             return true;
         }
         return false;
     }
 
-    public getCurrentNode(): FolderNode | FileNode {
-        return this.currentNode;
+    public navigate_to_path(navigate_path: string[]): boolean {
+        //console.log(navigate_path)
+        let start: folder_node = get(root);
+        let new_path = [get(root)];
+
+        if (navigate_path.length > 1) {
+            for (const folder_name of navigate_path) {
+                //console.log('looking at ' + folder_name);
+                for (const item of start.children) {
+                    //console.log('checking ' + item.name)
+                    if (item.name === folder_name && item.type === 'folder') {
+                        start = item as folder_node;
+                        new_path.push(start);
+                    }
+                }
+            }
+
+            //console.log(start);
+            path.update((p) => new_path);
+            current_node.update((x) => start);
+        } else {
+            path.update((p) => new_path);
+            current_node.update((x) => start);
+        }
+        return false;
+    }
+    
+
+    public get_current_node(): folder_node | file_node | null {
+        return get(current_node);
     }
 
-    public getPath(): string[] {
-        return this.path.map(node => node.name).concat(this.currentNode.name);
+    public get_path(): string[] {
+        const current_path = get(path);
+        const current = get(current_node);
+        return current_path.map(node => node.name).concat(current ? current.name : '');
     }
 }
-
-
-
-// Example usage
-const cursor = new FileSystemCursor(fileSystem);
-console.log(cursor.getCurrentNode()); // Root folder
-
-cursor.enterFolder("sub_folder_1");
-console.log(cursor.getCurrentNode()); // sub_folder_1
-
-cursor.enterFolder("nested_sub_folder_1_1");
-console.log(cursor.getCurrentNode()); // nested_sub_folder_1_1
-
-cursor.exitFolder();
-console.log(cursor.getCurrentNode()); // sub_folder_1
-
-console.log(cursor.getPath()); // ["root_folder", "sub_folder_1"]

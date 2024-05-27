@@ -6,33 +6,25 @@
   import FileTextIcon from "lucide-svelte/icons/file-text";
   import * as Collapsible from "$lib/components/ui/collapsible/index.js";
   import { Button } from "$lib/components/ui/button/index.js";
-  import { Toggle } from "$lib/components/ui/toggle/index.js";
 
-  // Self-reference for recursive component
   import FileTree from './FileTree.svelte';
+  import { FileSystemCursor, type folder_node } from './FileSystemCursor.js';
 
-  interface Node {
-    name: string;
-    type: 'file' | 'folder';
-    children?: Node[];
-  }
-
-  export let node: Node;
-  export let update_breadcrumb: (path: string) => void;
+  export let cursor: FileSystemCursor;
+  export let node: folder_node;
   export let parent_path: string = '';
 
   const open_state = writable(false);
 
   function handle_folder_click(name: string) {
-    const new_path = `${parent_path}/${name}`;
-    update_breadcrumb(new_path);
+    const new_path = parent_path ? `${parent_path}/${name}` : name;
+    const new_path_split = new_path.split('/').filter(element => element !== "");
+    cursor.navigate_to_path(new_path_split);
   }
 </script>
 
 {#if node.type === 'folder'}
   <Collapsible.Root bind:open={$open_state}>
-    <!-- svelte-ignore a11y-click-events-have-key-events -->
-    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="flex items-center" on:click={() => handle_folder_click(node.name)}>
       <Collapsible.Trigger asChild let:builder>
         <Button builders={[builder]} variant="ghost" size="sm" class="flex items-center">
@@ -50,7 +42,7 @@
     <Collapsible.Content>
       <div class="pl-4">
         {#each node.children as child}
-          <FileTree node={child} {update_breadcrumb} parent_path={`${parent_path}/${node.name}`} />
+          <FileTree node={child} cursor={cursor} parent_path={`${parent_path}/${node.name}`} />
         {/each}
       </div>
     </Collapsible.Content>
