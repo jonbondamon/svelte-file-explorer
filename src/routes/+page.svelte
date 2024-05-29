@@ -96,6 +96,7 @@
         }
         ]
     };
+
 </script>
 
 <FileExplorer {file_system}/>
