@@ -8,20 +8,22 @@
   import { Button } from "$lib/components/ui/button/index.js";
 
   import FileTree from './FileTree.svelte';
-  import { FileSystemCursor, type folder_node } from './FileSystemCursor.js';
 
-  export let cursor: FileSystemCursor;
-  export let node: folder_node;
+  export let cursor;
+  export let node;
   export let parent_path: string = '';
 
   const open_state = writable(false);
 
   function handle_folder_click(name: string) {
     const new_path = parent_path ? `${parent_path}/${name}` : name;
-    const new_path_split = new_path.split('/').filter(element => element !== "");
-    cursor.navigate_to_path(new_path_split);
+    console.log(new_path);
+  
+    cursor.change_directory(new_path);
   }
 </script>
+
+
 
 {#if node.type === 'folder'}
   <Collapsible.Root bind:open={$open_state}>

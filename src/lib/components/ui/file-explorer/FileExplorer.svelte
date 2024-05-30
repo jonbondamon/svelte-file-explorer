@@ -16,21 +16,15 @@
   import MagnifyingGlass from 'svelte-radix/MagnifyingGlass.svelte';
 
   import FileTree from './FileTree.svelte';
-  import { FileSystemCursor, current_node, path, root, type folder_node, type file_node } from './FileSystemCursor.js';
+  import FileSystem from '$lib/components/ui/file-explorer/FileSystem.js';
 
-  export let file_system: folder_node;
-  const cursor = new FileSystemCursor(file_system);
+  export let file_system: string;
 
-  // Function to handle breadcrumb click
-  function handle_breadcrumb_click(index: number) {
-    const path = cursor.get_path().slice(0, index + 1);
-    console.log(cursor.navigate_to_path(path));
-  }
+  const fs = new FileSystem(file_system);
+  const root_file_system = fs.root_file_system;
+  const current_node = fs.current_node;
+  const path = fs.path;
 
-  $: {
-    //console.log($current_node);
-    console.log($path);
-  }
 </script>
 
 <div class="p-6">
@@ -44,7 +38,7 @@
         <Button variant="ghost" class="ml-1 h-full"><RotateCw class="h-5 w-5" /></Button>
         <!-- NAVIGATION BUTTONS -->
 
-        <!-- FILE PATH -->
+        <!-- FILE PATH 
         <Card.Root class="ml-2 flex h-full w-full items-center rounded-md">
           <Breadcrumb.Root class="w-full">
             <Breadcrumb.List class="pl-3">
@@ -53,7 +47,7 @@
                   {#if index === $path.length - 1}
                     <Breadcrumb.Page>{item.name}</Breadcrumb.Page>
                   {:else}
-                  <a href="##" on:click|preventDefault={() => handle_breadcrumb_click(index)}>
+                  <a href="##" on:click|preventDefault={() => console.log('test')}>
                     <Breadcrumb.Link>{item.name}</Breadcrumb.Link>
                   </a>
                   {/if}
@@ -65,7 +59,7 @@
             </Breadcrumb.List>
           </Breadcrumb.Root>
         </Card.Root>
-        <!-- FILE PATH -->
+         FILE PATH -->
 
         <!-- SEARCH INPUT -->
         <Input
@@ -83,10 +77,13 @@
     <Resizable.Handle />
 
     <Resizable.PaneGroup direction="horizontal">
+
+      <!-- FILE TREE -->
       <Resizable.Pane defaultSize={15} class="flex h-[700px]">
-          <FileTree node={$root} cursor={cursor}/>
+          <FileTree node={$root_file_system} cursor={fs}/>
       </Resizable.Pane>
       <Resizable.Handle />
+      <!-- FILE TREE -->
       
       <Resizable.Pane class="flex flex-col h-[700px] items-start p-2">
         {#if $current_node}
@@ -94,7 +91,7 @@
             <ContextMenu.Root>
               <ContextMenu.Trigger>
                   {#if child.type === 'folder'}
-                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => cursor.enter_folder(child.name)}>
+                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => console.log('I clicked on a folder')}>
                       <FolderIcon class="h-6 w-6 mr-2" />
                       <div class="text-xs">{child.name}</div>
                     </Button>
