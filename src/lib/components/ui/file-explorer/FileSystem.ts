@@ -1,3 +1,5 @@
+// FileSystem.ts
+
 type FileNode = {
     name: string;
     type: "file";
@@ -16,23 +18,15 @@ class FileSystem {
     private currentNode: FolderNode;
     private path: string[];
     private history: string[][];
-    private nodeCache: Map<string, FileSystemNode>;
 
     constructor(fileSystemJson: string) {
         this.fileSystem = JSON.parse(fileSystemJson);
         this.currentNode = this.fileSystem;
         this.path = [this.fileSystem.name];
         this.history = [];
-        this.nodeCache = new Map();
-        this.nodeCache.set(this.fileSystem.name, this.fileSystem);
     }
 
     private findNodeByPath(path: string[]): FileSystemNode {
-        const cacheKey = path.join("/");
-        if (this.nodeCache.has(cacheKey)) {
-            return this.nodeCache.get(cacheKey)!;
-        }
-
         let node: FileSystemNode = this.fileSystem;
         for (const part of path.slice(1)) {  // Skip the root node as it's already assigned
             if ((node as FolderNode).children) {
@@ -46,8 +40,6 @@ class FileSystem {
                 throw new Error(`Path not found: ${path.join('/')}`);
             }
         }
-
-        this.nodeCache.set(cacheKey, node);
         return node;
     }
 
@@ -89,7 +81,18 @@ class FileSystem {
     getCurrentPath(): string {
         return this.path.join("/");
     }
+
+    getCurrentNode(): FolderNode {
+        return this.currentNode;
+    }
+
+    getPath(): string[] {
+        return this.path;
+    }
 }
+
+export default FileSystem;
+
 
 // Example usage:
 const fileSystemJson = `
