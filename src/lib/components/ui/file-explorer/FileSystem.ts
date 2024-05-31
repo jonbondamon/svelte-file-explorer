@@ -58,8 +58,20 @@ class FileSystem {
                 throw new Error("Already at the root directory");
             }
         } else {
-            let new_path = this._path.concat(path.split("/"));
-            let node = this.find_node_by_path(new_path);
+            const new_path_segments = path.split("/").filter(p => p);
+            let new_path;
+    
+            if (new_path_segments[0] === this._file_system.name) {
+                // Absolute path
+                new_path = new_path_segments;
+            } else {
+                // Relative path
+                new_path = this._path.concat(new_path_segments);
+            }
+    
+            new_path = Array.from(new Set(new_path)); // Remove duplicates
+    
+            const node = this.find_node_by_path(new_path);
             if (node.type === 'folder') {
                 this.forward_history = [];
                 this.history.push([...this._path]);
@@ -72,6 +84,7 @@ class FileSystem {
         this.current_node.set(this._current_node);
         this.path.set(this._path);
     }
+    
 
     go_back(): void {
         if (this.history.length) {

@@ -17,13 +17,9 @@
 
   function handle_folder_click(name: string) {
     const new_path = parent_path ? `${parent_path}/${name}` : name;
-    console.log(new_path);
-  
     cursor.change_directory(new_path);
   }
 </script>
-
-
 
 {#if node.type === 'folder'}
   <Collapsible.Root bind:open={$open_state}>

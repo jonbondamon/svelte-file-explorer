@@ -25,6 +25,16 @@
   const current_node = fs.current_node;
   const path = fs.path;
 
+  $: console.log($path)
+
+  function handle_breadcrumb_click(index: number) {
+    console.log(index);
+    let sliced_path = $path.slice(0, index)
+    let joined_path = sliced_path.join('/');
+    console.log(joined_path);
+    fs.change_directory(joined_path);
+  }
+
 </script>
 
 <div class="p-6">
@@ -33,22 +43,22 @@
       <!-- HEADER -->
       <div class="flex h-[50px] w-full items-center p-2">
         <!-- NAVIGATION BUTTONS -->
-        <Button variant="ghost" class="h-full"><ArrowLeft class="h-5 w-5" /></Button>
-        <Button variant="ghost" class="ml-1 h-full"><ArrowRight class="h-5 w-5" /></Button>
+        <Button variant="ghost" class="h-full" on:click={() => fs.go_back()}><ArrowLeft class="h-5 w-5" /></Button>
+        <Button variant="ghost" class="ml-1 h-full" on:click={() => fs.go_forward()}><ArrowRight class="h-5 w-5" /></Button>
         <Button variant="ghost" class="ml-1 h-full"><RotateCw class="h-5 w-5" /></Button>
         <!-- NAVIGATION BUTTONS -->
 
-        <!-- FILE PATH 
+        <!-- FILE PATH -->
         <Card.Root class="ml-2 flex h-full w-full items-center rounded-md">
           <Breadcrumb.Root class="w-full">
             <Breadcrumb.List class="pl-3">
               {#each $path as item, index}
                 <Breadcrumb.Item>
                   {#if index === $path.length - 1}
-                    <Breadcrumb.Page>{item.name}</Breadcrumb.Page>
+                    <Breadcrumb.Page>{item}</Breadcrumb.Page>
                   {:else}
-                  <a href="##" on:click|preventDefault={() => console.log('test')}>
-                    <Breadcrumb.Link>{item.name}</Breadcrumb.Link>
+                  <a href="##" on:click|preventDefault={() => handle_breadcrumb_click(index)}>
+                    <Breadcrumb.Link>{item}</Breadcrumb.Link>
                   </a>
                   {/if}
                 </Breadcrumb.Item>
@@ -59,7 +69,7 @@
             </Breadcrumb.List>
           </Breadcrumb.Root>
         </Card.Root>
-         FILE PATH -->
+        <!-- FILE PATH -->
 
         <!-- SEARCH INPUT -->
         <Input
