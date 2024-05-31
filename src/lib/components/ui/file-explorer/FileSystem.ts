@@ -62,7 +62,7 @@ class FileSystem {
             const new_path_segments = path.split("/").filter(p => p);
             const new_path = this._path.concat(new_path_segments);
 
-            console.log("New path:", new_path);
+            //console.log("New path:", new_path);
             const node = this.find_node_by_path(new_path);
             if (node.type === 'folder') {
                 this.forward_history = [];
