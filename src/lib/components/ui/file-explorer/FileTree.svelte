@@ -22,14 +22,14 @@
     cursor.change_directory_absolute(new_path);
   }
 
-  function normalizePath(path) {
+  function normalize_path(path) {
     return path.replace(/^\/+/, ''); // Remove leading slashes
   }
 
   // Subscribe to the current_node store to update the toggle state
   cursor.current_node.subscribe(current => {
-    const full_path = normalizePath(parent_path ? `${parent_path}/${node.name}` : node.name);
-    toggle.set(current.name === node.name && normalizePath(cursor.get_current_path()) === full_path);
+    const full_path = normalize_path(parent_path ? `${parent_path}/${node.name}` : node.name);
+    toggle.set(current.name === node.name && normalize_path(cursor.get_current_path()) === full_path);
   });
   
 </script>
