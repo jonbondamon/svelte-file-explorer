@@ -25,14 +25,13 @@
   const current_node = fs.current_node;
   const path = fs.path;
 
-  $: console.log($path)
-
   function handle_breadcrumb_click(index: number) {
-    console.log(index);
-    let sliced_path = $path.slice(0, index)
-    let joined_path = sliced_path.join('/');
-    console.log(joined_path);
-    fs.change_directory(joined_path);
+    let destination_path = $path.slice(0, index+1).join('/');
+    fs.change_directory_absolute(destination_path);
+  }
+
+  function handle_folder_click(name: string) {
+    fs.change_directory_relative(name);
   }
 
 </script>
@@ -101,7 +100,7 @@
             <ContextMenu.Root>
               <ContextMenu.Trigger>
                   {#if child.type === 'folder'}
-                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => console.log('I clicked on a folder')}>
+                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => handle_folder_click(child.name)}>
                       <FolderIcon class="h-6 w-6 mr-2" />
                       <div class="text-xs">{child.name}</div>
                     </Button>

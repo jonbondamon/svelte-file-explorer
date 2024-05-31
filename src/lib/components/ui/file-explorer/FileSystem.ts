@@ -7,7 +7,6 @@ interface FileSystemNode {
 }
 
 class FileSystem {
-
     private _file_system: FileSystemNode;
     private _current_node: FileSystemNode;
     private _path: string[];
@@ -47,7 +46,9 @@ class FileSystem {
         return node;
     }
 
-    change_directory(path: string): void {
+    change_directory_relative(path: string): void {
+        //console.log("Attempting to change directory to (relative):", path);
+
         if (path === "..") {
             if (this._path.length > 1) {
                 this.forward_history = [];
@@ -59,18 +60,9 @@ class FileSystem {
             }
         } else {
             const new_path_segments = path.split("/").filter(p => p);
-            let new_path;
-    
-            if (new_path_segments[0] === this._file_system.name) {
-                // Absolute path
-                new_path = new_path_segments;
-            } else {
-                // Relative path
-                new_path = this._path.concat(new_path_segments);
-            }
-    
-            new_path = Array.from(new Set(new_path)); // Remove duplicates
-    
+            const new_path = this._path.concat(new_path_segments);
+
+            console.log("New path:", new_path);
             const node = this.find_node_by_path(new_path);
             if (node.type === 'folder') {
                 this.forward_history = [];
@@ -81,10 +73,33 @@ class FileSystem {
                 throw new Error("Not a folder");
             }
         }
+
         this.current_node.set(this._current_node);
         this.path.set(this._path);
+        //console.log("Current Node:", this._current_node);
+        //console.log("Path:", this._path);
     }
-    
+
+    change_directory_absolute(path: string): void {
+        //console.log("Attempting to change directory to (absolute):", path);
+
+        const new_path = path.split("/").filter(p => p);
+        //console.log("New path:", new_path);
+        const node = this.find_node_by_path(new_path);
+        if (node.type === 'folder') {
+            this.forward_history = [];
+            this.history.push([...this._path]);
+            this._path = new_path;
+            this._current_node = node;
+        } else {
+            throw new Error("Not a folder");
+        }
+
+        this.current_node.set(this._current_node);
+        this.path.set(this._path);
+        //console.log("Current Node:", this._current_node);
+        //console.log("Path:", this._path);
+    }
 
     go_back(): void {
         if (this.history.length) {
