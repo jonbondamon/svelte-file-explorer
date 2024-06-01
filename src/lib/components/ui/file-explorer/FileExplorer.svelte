@@ -16,21 +16,24 @@
   import MagnifyingGlass from 'svelte-radix/MagnifyingGlass.svelte';
 
   import FileTree from './FileTree.svelte';
-  import { FileSystemCursor, current_node, path, root, type folder_node, type file_node } from './FileSystemCursor.js';
+  import FileSystem from '$lib/components/ui/file-explorer/FileSystem.js';
 
-  export let file_system: folder_node;
-  const cursor = new FileSystemCursor(file_system);
+  export let file_system: string;
 
-  // Function to handle breadcrumb click
+  const fs = new FileSystem(file_system);
+  const root_file_system = fs.root_file_system;
+  const current_node = fs.current_node;
+  const path = fs.path;
+
   function handle_breadcrumb_click(index: number) {
-    const path = cursor.get_path().slice(0, index + 1);
-    console.log(cursor.navigate_to_path(path));
+    let destination_path = $path.slice(0, index+1).join('/');
+    fs.change_directory_absolute(destination_path);
   }
 
-  $: {
-    //console.log($current_node);
-    console.log($path);
+  function handle_folder_click(name: string) {
+    fs.change_directory_relative(name);
   }
+
 </script>
 
 <div class="p-6">
@@ -39,8 +42,8 @@
       <!-- HEADER -->
       <div class="flex h-[50px] w-full items-center p-2">
         <!-- NAVIGATION BUTTONS -->
-        <Button variant="ghost" class="h-full"><ArrowLeft class="h-5 w-5" /></Button>
-        <Button variant="ghost" class="ml-1 h-full"><ArrowRight class="h-5 w-5" /></Button>
+        <Button variant="ghost" class="h-full" on:click={() => fs.go_back()}><ArrowLeft class="h-5 w-5" /></Button>
+        <Button variant="ghost" class="ml-1 h-full" on:click={() => fs.go_forward()}><ArrowRight class="h-5 w-5" /></Button>
         <Button variant="ghost" class="ml-1 h-full"><RotateCw class="h-5 w-5" /></Button>
         <!-- NAVIGATION BUTTONS -->
 
@@ -51,10 +54,10 @@
               {#each $path as item, index}
                 <Breadcrumb.Item>
                   {#if index === $path.length - 1}
-                    <Breadcrumb.Page>{item.name}</Breadcrumb.Page>
+                    <Breadcrumb.Page>{item}</Breadcrumb.Page>
                   {:else}
                   <a href="##" on:click|preventDefault={() => handle_breadcrumb_click(index)}>
-                    <Breadcrumb.Link>{item.name}</Breadcrumb.Link>
+                    <Breadcrumb.Link>{item}</Breadcrumb.Link>
                   </a>
                   {/if}
                 </Breadcrumb.Item>
@@ -83,43 +86,30 @@
     <Resizable.Handle />
 
     <Resizable.PaneGroup direction="horizontal">
+
+      <!-- FILE TREE -->
       <Resizable.Pane defaultSize={15} class="flex h-[700px]">
-          <FileTree node={$root} cursor={cursor}/>
+        <div class="overflow-y-auto overflow-x-hidden">
+          <FileTree node={$root_file_system} cursor={fs}/>
+        </div>
       </Resizable.Pane>
       <Resizable.Handle />
+      <!-- FILE TREE -->
       
       <Resizable.Pane class="flex flex-col h-[700px] items-start p-2">
         {#if $current_node}
           {#each $current_node.children as child}
-            <ContextMenu.Root>
-              <ContextMenu.Trigger>
-                  {#if child.type === 'folder'}
-                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => cursor.enter_folder(child.name)}>
-                      <FolderIcon class="h-6 w-6 mr-2" />
-                      <div class="text-xs">{child.name}</div>
-                    </Button>
-                  {:else}
-                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left">
-                      <FileTextIcon class="h-6 w-6 mr-2" />
-                      <div class="text-xs">{child.name}</div>
-                    </Button>
-                  {/if}
-              </ContextMenu.Trigger>
-              <ContextMenu.Content class="w-64">
-                <ContextMenu.Item inset>
-                  Back
-                  <ContextMenu.Shortcut>⌘[</ContextMenu.Shortcut>
-                </ContextMenu.Item>
-                <ContextMenu.Item inset>
-                  Forward
-                  <ContextMenu.Shortcut>⌘]</ContextMenu.Shortcut>
-                </ContextMenu.Item>
-                <ContextMenu.Item inset>
-                  Reload
-                  <ContextMenu.Shortcut>⌘R</ContextMenu.Shortcut>
-                </ContextMenu.Item>
-              </ContextMenu.Content>
-            </ContextMenu.Root>
+              {#if child.type === 'folder'}
+                <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => handle_folder_click(child.name)}>
+                  <FolderIcon class="h-6 w-6 mr-2" />
+                  <div class="text-xs">{child.name}</div>
+                </Button>
+              {:else}
+                <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left">
+                  <FileTextIcon class="h-6 w-6 mr-2" />
+                  <div class="text-xs">{child.name}</div>
+                </Button>
+              {/if}
           {/each}
         {/if}
       </Resizable.Pane>

@@ -1,104 +1,260 @@
 
 <script lang="ts">
-type FileNode = {
-    name: string;
-    type: "file";
-};
+    
+    import FileExplorer from '$lib/components/ui/file-explorer/FileExplorer.svelte';
 
-type FolderNode = {
-    name: string;
-    type: "folder";
-    children: Array<FileNode | FolderNode>;
-};
-
-type FileSystemNode = FileNode | FolderNode;
-
-class FileSystem {
-    private fileSystem: FolderNode;
-    private currentNode: FolderNode;
-    private path: string[];
-    private history: string[][];
-
-    constructor(fileSystemJson: string) {
-        this.fileSystem = JSON.parse(fileSystemJson);
-        this.currentNode = this.fileSystem;
-        this.path = [this.fileSystem.name];
-        this.history = [];
-    }
-
-    private findNodeByPath(path: string[]): FileSystemNode {
-        let node: FileSystemNode = this.fileSystem;
-        for (const part of path.slice(1)) {  // Skip the root node as it's already assigned
-            if ((node as FolderNode).children) {
-                const childNode = (node as FolderNode).children.find(child => child.name === part);
-                if (childNode) {
-                    node = childNode;
-                } else {
-                    throw new Error(`Path not found: ${path.join('/')}`);
-                }
-            } else {
-                throw new Error(`Path not found: ${path.join('/')}`);
-            }
-        }
-        return node;
-    }
-
-    changeDirectory(path: string): void {
-        if (path === "..") {
-            if (this.path.length > 1) {
-                this.history.push([...this.path]);
-                this.path.pop();
-                this.currentNode = this.findNodeByPath(this.path) as FolderNode;
-            } else {
-                throw new Error("Already at the root directory");
-            }
-        } else {
-            const newPath = this.path.concat(path.split("/"));
-            const node = this.findNodeByPath(newPath);
-            if (node.type === "folder") {
-                this.history.push([...this.path]);
-                this.path = newPath;
-                this.currentNode = node as FolderNode;
-            } else {
-                throw new Error("Not a folder");
-            }
-        }
-    }
-
-    goBack(): void {
-        if (this.history.length > 0) {
-            this.path = this.history.pop()!;
-            this.currentNode = this.findNodeByPath(this.path) as FolderNode;
-        } else {
-            throw new Error("No history to go back to");
-        }
-    }
-
-    listContents(): string[] {
-        return (this.currentNode.children || []).map(child => child.name);
-    }
-
-    getCurrentPath(): string {
-        return this.path.join("/");
-    }
-
-    getCurrentNode(): FolderNode {
-        return this.currentNode;
-    }
-
-    getPath(): string[] {
-        return this.path;
-    }
-}
-
-
-
-// Example usage:
-const fileSystemJson = `
-{
+    // Example usage:
+    const file_system: string = `
+    {
     "name": "root_folder",
     "type": "folder",
     "children": [
+        {
+            "name": "folder_at_depth_0",
+            "type": "folder",
+            "children": [
+                {
+                    "name": "folder_at_depth_1",
+                    "type": "folder",
+                    "children": [
+                        {
+                            "name": "folder_at_depth_2",
+                            "type": "folder",
+                            "children": [
+                                {
+                                    "name": "folder_at_depth_3",
+                                    "type": "folder",
+                                    "children": [
+                                        {
+                                            "name": "folder_at_depth_4",
+                                            "type": "folder",
+                                            "children": [
+                                                {
+                                                    "name": "folder_at_depth_5",
+                                                    "type": "folder",
+                                                    "children": [
+                                                        {
+                                                            "name": "folder_at_depth_6",
+                                                            "type": "folder",
+                                                            "children": [
+                                                                {
+                                                                    "name": "folder_at_depth_7",
+                                                                    "type": "folder",
+                                                                    "children": [
+                                                                        {
+                                                                            "name": "folder_at_depth_8",
+                                                                            "type": "folder",
+                                                                            "children": [
+                                                                                {
+                                                                                    "name": "folder_at_depth_9",
+                                                                                    "type": "folder",
+                                                                                    "children": [
+                                                                                        {
+                                                                                            "name": "file_at_depth_10.txt",
+                                                                                            "type": "file"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "file_at_depth_9.txt",
+                                                                                            "type": "file"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "another_file_at_depth_9.txt",
+                                                                                            "type": "file"
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "extra_folder_at_depth_9_60",
+                                                                                            "type": "folder",
+                                                                                            "children": [
+                                                                                                {
+                                                                                                    "name": "nested_file_at_depth_9_39.txt",
+                                                                                                    "type": "file"
+                                                                                                }
+                                                                                            ]
+                                                                                        },
+                                                                                        {
+                                                                                            "name": "extra_file_at_depth_9_19.txt",
+                                                                                            "type": "file"
+                                                                                        }
+                                                                                    ]
+                                                                                },
+                                                                                {
+                                                                                    "name": "file_at_depth_8.txt",
+                                                                                    "type": "file"
+                                                                                },
+                                                                                {
+                                                                                    "name": "another_file_at_depth_8.txt",
+                                                                                    "type": "file"
+                                                                                },
+                                                                                {
+                                                                                    "name": "extra_file_at_depth_8_5.txt",
+                                                                                    "type": "file"
+                                                                                },
+                                                                                {
+                                                                                    "name": "extra_folder_at_depth_8_83",
+                                                                                    "type": "folder",
+                                                                                    "children": [
+                                                                                        {
+                                                                                            "name": "nested_file_at_depth_8_26.txt",
+                                                                                            "type": "file"
+                                                                                        }
+                                                                                    ]
+                                                                                }
+                                                                            ]
+                                                                        },
+                                                                        {
+                                                                            "name": "file_at_depth_7.txt",
+                                                                            "type": "file"
+                                                                        },
+                                                                        {
+                                                                            "name": "another_file_at_depth_7.txt",
+                                                                            "type": "file"
+                                                                        },
+                                                                        {
+                                                                            "name": "extra_file_at_depth_7_93.txt",
+                                                                            "type": "file"
+                                                                        }
+                                                                    ]
+                                                                },
+                                                                {
+                                                                    "name": "file_at_depth_6.txt",
+                                                                    "type": "file"
+                                                                },
+                                                                {
+                                                                    "name": "another_file_at_depth_6.txt",
+                                                                    "type": "file"
+                                                                },
+                                                                {
+                                                                    "name": "extra_folder_at_depth_6_20",
+                                                                    "type": "folder",
+                                                                    "children": [
+                                                                        {
+                                                                            "name": "nested_file_at_depth_6_16.txt",
+                                                                            "type": "file"
+                                                                        }
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        },
+                                                        {
+                                                            "name": "file_at_depth_5.txt",
+                                                            "type": "file"
+                                                        },
+                                                        {
+                                                            "name": "another_file_at_depth_5.txt",
+                                                            "type": "file"
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "name": "file_at_depth_4.txt",
+                                                    "type": "file"
+                                                },
+                                                {
+                                                    "name": "another_file_at_depth_4.txt",
+                                                    "type": "file"
+                                                },
+                                                {
+                                                    "name": "extra_file_at_depth_4_56.txt",
+                                                    "type": "file"
+                                                },
+                                                {
+                                                    "name": "extra_folder_at_depth_4_40",
+                                                    "type": "folder",
+                                                    "children": [
+                                                        {
+                                                            "name": "nested_file_at_depth_4_3.txt",
+                                                            "type": "file"
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "name": "file_at_depth_3.txt",
+                                            "type": "file"
+                                        },
+                                        {
+                                            "name": "another_file_at_depth_3.txt",
+                                            "type": "file"
+                                        },
+                                        {
+                                            "name": "extra_file_at_depth_3_22.txt",
+                                            "type": "file"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "name": "file_at_depth_2.txt",
+                                    "type": "file"
+                                },
+                                {
+                                    "name": "another_file_at_depth_2.txt",
+                                    "type": "file"
+                                },
+                                {
+                                    "name": "extra_file_at_depth_2_7.txt",
+                                    "type": "file"
+                                },
+                                {
+                                    "name": "extra_folder_at_depth_2_80",
+                                    "type": "folder",
+                                    "children": [
+                                        {
+                                            "name": "nested_file_at_depth_2_36.txt",
+                                            "type": "file"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "name": "file_at_depth_1.txt",
+                            "type": "file"
+                        },
+                        {
+                            "name": "another_file_at_depth_1.txt",
+                            "type": "file"
+                        },
+                        {
+                            "name": "extra_file_at_depth_1_53.txt",
+                            "type": "file"
+                        },
+                        {
+                            "name": "extra_folder_at_depth_1_75",
+                            "type": "folder",
+                            "children": [
+                                {
+                                    "name": "nested_file_at_depth_1_46.txt",
+                                    "type": "file"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "name": "file_at_depth_0.txt",
+                    "type": "file"
+                },
+                {
+                    "name": "another_file_at_depth_0.txt",
+                    "type": "file"
+                },
+                {
+                    "name": "extra_file_at_depth_0_34.txt",
+                    "type": "file"
+                },
+                {
+                    "name": "extra_folder_at_depth_0_29",
+                    "type": "folder",
+                    "children": [
+                        {
+                            "name": "nested_file_at_depth_0_98.txt",
+                            "type": "file"
+                        }
+                    ]
+                }
+            ]
+        },
         {
             "name": "sub_folder_1",
             "type": "folder",
@@ -178,25 +334,10 @@ const fileSystemJson = `
             "type": "file"
         }
     ]
-}
-`;
+}`;
 
-const fs = new FileSystem(fileSystemJson);
-console.log("Current Path:", fs.getCurrentPath());  // Output: root_folder
-console.log("Contents:", fs.listContents());  // Output: ['sub_folder_1', 'sub_folder_2', 'file_in_root_folder.txt', 'another_file_in_root_folder.txt']
-console.log("Node:", fs.getPath());
-
-
-fs.changeDirectory("sub_folder_1");
-console.log("Current Path:", fs.getCurrentPath());  // Output: root_folder/sub_folder_1
-console.log("Contents:", fs.listContents());  // Output: ['file_in_sub_folder_1.txt', 'nested_sub_folder_1_1', 'nested_sub_folder_1_2']
-
-fs.changeDirectory("nested_sub_folder_1_1");
-console.log("Current Path:", fs.getCurrentPath());  // Output: root_folder/sub_folder_1/nested_sub_folder_1_1
-console.log("Contents:", fs.listContents());  // Output: ['file_in_nested_sub_folder_1_1.txt', 'deeper_nested_sub_folder_1_1_1']
-
-fs.goBack();
-console.log("Current Path:", fs.getCurrentPath());  // Output: root_folder/sub_folder_1
-console.log("Contents:", fs.listContents());  // Output: ['file_in_sub_folder_1.txt', 'nested_sub_folder_1_1', 'nested_sub_folder_1_2']
 
 </script>
+
+
+<FileExplorer {file_system}/>
