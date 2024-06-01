@@ -89,7 +89,9 @@
 
       <!-- FILE TREE -->
       <Resizable.Pane defaultSize={15} class="flex h-[700px]">
+        <div class="overflow-y-auto overflow-x-hidden">
           <FileTree node={$root_file_system} cursor={fs}/>
+        </div>
       </Resizable.Pane>
       <Resizable.Handle />
       <!-- FILE TREE -->
@@ -97,35 +99,17 @@
       <Resizable.Pane class="flex flex-col h-[700px] items-start p-2">
         {#if $current_node}
           {#each $current_node.children as child}
-            <ContextMenu.Root>
-              <ContextMenu.Trigger>
-                  {#if child.type === 'folder'}
-                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => handle_folder_click(child.name)}>
-                      <FolderIcon class="h-6 w-6 mr-2" />
-                      <div class="text-xs">{child.name}</div>
-                    </Button>
-                  {:else}
-                    <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left">
-                      <FileTextIcon class="h-6 w-6 mr-2" />
-                      <div class="text-xs">{child.name}</div>
-                    </Button>
-                  {/if}
-              </ContextMenu.Trigger>
-              <ContextMenu.Content class="w-64">
-                <ContextMenu.Item inset>
-                  Back
-                  <ContextMenu.Shortcut>⌘[</ContextMenu.Shortcut>
-                </ContextMenu.Item>
-                <ContextMenu.Item inset>
-                  Forward
-                  <ContextMenu.Shortcut>⌘]</ContextMenu.Shortcut>
-                </ContextMenu.Item>
-                <ContextMenu.Item inset>
-                  Reload
-                  <ContextMenu.Shortcut>⌘R</ContextMenu.Shortcut>
-                </ContextMenu.Item>
-              </ContextMenu.Content>
-            </ContextMenu.Root>
+              {#if child.type === 'folder'}
+                <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left" on:click={() => handle_folder_click(child.name)}>
+                  <FolderIcon class="h-6 w-6 mr-2" />
+                  <div class="text-xs">{child.name}</div>
+                </Button>
+              {:else}
+                <Button variant="ghost" class="flex items-center w-full mb-1 justify-start text-left">
+                  <FileTextIcon class="h-6 w-6 mr-2" />
+                  <div class="text-xs">{child.name}</div>
+                </Button>
+              {/if}
           {/each}
         {/if}
       </Resizable.Pane>
